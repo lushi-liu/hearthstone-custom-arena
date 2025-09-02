@@ -3,7 +3,23 @@ import { Schema, model, models } from "mongoose";
 const cardSchema = new Schema(
   {
     name: { type: String, required: true },
-    type: { type: String, required: true },
+    type: { type: String, enum: ["Minion", "Spell", "Weapon"], required: true },
+    class: {
+      type: String,
+      enum: [
+        "Neutral",
+        "Mage",
+        "Shaman",
+        "Warrior",
+        "Druid",
+        "Hunter",
+        "Paladin",
+        "Priest",
+        "Rogue",
+        "Warlock",
+      ],
+      required: true,
+    },
     mana: { type: Number, required: true },
     attack: { type: Number, default: 0 },
     health: { type: Number, default: 0 },

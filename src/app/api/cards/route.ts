@@ -6,7 +6,17 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
     const data = await req.json();
-    const card = new Card({ ...data, cardId: `custom_${Date.now()}` }); // Temp cardId for customs
+
+    // Validate based on type
+    if (data.type === "Spell") {
+      data.attack = 0;
+      data.health = 0;
+      data.tribe = "";
+    } else if (data.type === "Weapon") {
+      data.tribe = "";
+    }
+
+    const card = new Card({ ...data, cardId: `custom_${Date.now()}` });
     await card.save();
     return NextResponse.json(card, { status: 201 });
   } catch (error) {

@@ -5,6 +5,7 @@ export default function CreateCard() {
   const [form, setForm] = useState({
     name: "",
     type: "Minion",
+    class: "Neutral",
     mana: 0,
     attack: 0,
     health: 0,
@@ -32,6 +33,7 @@ export default function CreateCard() {
       setForm({
         name: "",
         type: "Minion",
+        class: "Neutral",
         mana: 0,
         attack: 0,
         health: 0,
@@ -83,26 +85,64 @@ export default function CreateCard() {
             required
           />
         </div>
-        <div>
-          <label className="block">Attack</label>
-          <input
-            type="number"
-            value={form.attack}
-            onChange={(e) => setForm({ ...form, attack: +e.target.value })}
-            className="w-full p-2 border rounded"
-            min="0"
-          />
-        </div>
-        <div>
-          <label className="block">Health</label>
-          <input
-            type="number"
-            value={form.health}
-            onChange={(e) => setForm({ ...form, health: +e.target.value })}
-            className="w-full p-2 border rounded"
-            min="0"
-          />
-        </div>
+        {form.type === "Minion" && (
+          <>
+            <div>
+              <label className="block">Attack</label>
+              <input
+                type="number"
+                value={form.attack}
+                onChange={(e) => setForm({ ...form, attack: +e.target.value })}
+                className="w-full p-2 border rounded"
+                min="0"
+              />
+            </div>
+            <div>
+              <label className="block">Health</label>
+              <input
+                type="number"
+                value={form.health}
+                onChange={(e) => setForm({ ...form, health: +e.target.value })}
+                className="w-full p-2 border rounded"
+                min="0"
+              />
+            </div>
+            <div>
+              <label className="block">Tribe</label>
+              <input
+                type="text"
+                value={form.tribe}
+                onChange={(e) => setForm({ ...form, tribe: e.target.value })}
+                className="w-full p-2 border rounded"
+                placeholder="e.g., Murloc, Demon"
+              />
+            </div>
+          </>
+        )}
+        {form.type === "Weapon" && (
+          <>
+            <div>
+              <label className="block">Attack</label>
+              <input
+                type="number"
+                value={form.attack}
+                onChange={(e) => setForm({ ...form, attack: +e.target.value })}
+                className="w-full p-2 border rounded"
+                min="0"
+              />
+            </div>
+            <div>
+              <label className="block">Health</label>
+              <input
+                type="number"
+                value={form.health}
+                onChange={(e) => setForm({ ...form, health: +e.target.value })}
+                className="w-full p-2 border rounded"
+                min="0"
+              />
+            </div>
+          </>
+        )}
         <div>
           <label className="block">Rarity</label>
           <select
@@ -123,16 +163,6 @@ export default function CreateCard() {
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             className="w-full p-2 border rounded"
             required
-          />
-        </div>
-        <div>
-          <label className="block">Tribe</label>
-          <input
-            type="text"
-            value={form.tribe}
-            onChange={(e) => setForm({ ...form, tribe: e.target.value })}
-            className="w-full p-2 border rounded"
-            placeholder="e.g., Murloc, Demon, Spell"
           />
         </div>
         <button
