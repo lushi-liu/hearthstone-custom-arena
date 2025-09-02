@@ -8,18 +8,32 @@ export async function POST(req: NextRequest) {
     const { build = "latest", set } = await req.json();
 
     const url = `https://api.hearthstonejson.com/v1/${build}/enUS/cards.collectible.json`;
+    console.log("Fetching from:", url);
     const response = await fetch(url);
-    if (!response.ok)
-      return NextResponse.json({ error: "API fetch failed" }, { status: 500 });
+    if (!response.ok) {
+      console.error("API fetch failed:", response.status, response.statusText);
+      return NextResponse.json(
+        { error: `API fetch failed: ${response.statusText}` },
+        { status: 500 }
+      );
+    }
 
     const apiCards = await response.json();
+    console.log("Fetched cards:", apiCards.length);
     const filteredCards = set
       ? apiCards.filter((c: any) => c.set === set)
       : apiCards;
 
     const imported = [];
     for (const apiCard of filteredCards) {
-      if (!["MINION", "SPELL", "WEAPON"].includes(apiCard.type)) continue; // Skip unsupported types
+      if (!["MINION", "SPELL", "WEAPON"].includes(apiCard.type)) {
+        console.log(
+          "Skipping card due to unsupported type:",
+          apiCard.name,
+          apiCard.type
+        );
+        continue;
+      }
 
       const existing = await Card.findOne({ cardId: apiCard.dbfId });
       if (!existing) {
@@ -49,10 +63,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    console.log("Imported cards:", imported.length);
     return NextResponse.json({ importedCount: imported.length });
-  } catch (error) {
+  } catch (error: any) {
+    console.error("Import error:", error.message, error.stack);
     return NextResponse.json(
-      { error: "Failed to import cards" },
+      { error: `Failed to import cards: ${error.message}` },
       { status: 500 }
     );
   }
