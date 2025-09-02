@@ -3,12 +3,13 @@ import { Schema, model, models } from "mongoose";
 const cardSchema = new Schema(
   {
     name: { type: String, required: true },
+    type: { type: String, required: true },
     mana: { type: Number, required: true },
     attack: { type: Number, default: 0 },
     health: { type: Number, default: 0 },
     rarity: {
       type: String,
-      enum: ["Free", "Common", "Rare", "Epic", "Legendary"],
+      enum: ["Common", "Rare", "Epic", "Legendary"],
       required: true,
     },
     description: { type: String, required: true },
