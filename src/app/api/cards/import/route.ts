@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
       : apiCards;
 
     const imported = [];
+    const skipped = [];
     for (const apiCard of filteredCards) {
       if (!["MINION", "SPELL", "WEAPON"].includes(apiCard.type)) {
         console.log(
@@ -32,47 +33,65 @@ export async function POST(req: NextRequest) {
           apiCard.name,
           apiCard.type
         );
-        continue;
-      }
-      if (["DEATHKNIGHT", "DEMONHUNTER"].includes(apiCard.cardClass)) {
-        console.log(
-          "Skipping card due to unsupported class:",
-          apiCard.name,
-          apiCard.cardClass
-        );
+        skipped.push({
+          name: apiCard.name,
+          reason: `Unsupported type: ${apiCard.type}`,
+        });
         continue;
       }
 
-      const existing = await Card.findOne({ cardId: apiCard.dbfId });
-      if (!existing) {
-        const cardData = {
-          name: apiCard.name,
-          mana: apiCard.cost ?? 0,
-          attack: apiCard.type === "SPELL" ? 0 : apiCard.attack ?? 0,
-          health:
-            apiCard.type === "SPELL"
-              ? 0
-              : apiCard.health ?? apiCard.durability ?? 0,
-          rarity: apiCard.rarity ?? "Common",
-          description: apiCard.text ?? "",
-          tribe:
-            apiCard.type === "SPELL" || apiCard.type === "WEAPON"
-              ? ""
-              : apiCard.race ?? "",
-          type: apiCard.type,
-          class: apiCard.cardClass ?? "Neutral",
-          source: `api:${build}`,
-          cardId: apiCard.dbfId,
-          imageUrl: `https://art.hearthstonejson.com/v1/render/latest/enUS/256x/${apiCard.id}.png`,
-        };
+      const existing = await Card.findOne({
+        cardId: apiCard.dbfId?.toString(),
+      });
+      if (existing) {
+        console.log(
+          "Skipping card due to existing dbfId:",
+          apiCard.name,
+          apiCard.dbfId
+        );
+        skipped.push({ name: apiCard.name, reason: "Already exists" });
+        continue;
+      }
+
+      const cardData = {
+        name: apiCard.name ?? "Unknown",
+        mana: apiCard.cost ?? 0,
+        attack: apiCard.type === "SPELL" ? 0 : apiCard.attack ?? 0,
+        health:
+          apiCard.type === "SPELL"
+            ? 0
+            : apiCard.health ?? apiCard.durability ?? 0,
+        rarity: apiCard.rarity ?? "Common",
+        description: apiCard.text ?? "",
+        tribe:
+          apiCard.type === "SPELL" || apiCard.type === "WEAPON"
+            ? ""
+            : apiCard.race ?? "",
+        type: apiCard.type,
+        class: apiCard.cardClass ?? "Neutral",
+        source: `api:${build}`,
+        cardId: apiCard.dbfId?.toString() ?? `temp_${Date.now()}`,
+        imageUrl: `https://art.hearthstonejson.com/v1/render/latest/enUS/256x/${apiCard.id}.png`,
+      };
+
+      try {
         const card = new Card(cardData);
         await card.save();
         imported.push(card);
+      } catch (error: any) {
+        console.error("Failed to save card:", apiCard.name, error.message);
+        skipped.push({
+          name: apiCard.name,
+          reason: `Validation error: ${error.message}`,
+        });
       }
     }
 
-    console.log("Imported cards:", imported.length);
-    return NextResponse.json({ importedCount: imported.length });
+    console.log("Skipped cards:", skipped.length, "Skipped:", skipped);
+    return NextResponse.json({
+      importedCount: imported.length,
+      skippedCount: skipped.length,
+    });
   } catch (error: any) {
     console.error("Import error:", error.message, error.stack);
     return NextResponse.json(
