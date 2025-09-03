@@ -24,6 +24,26 @@ export default function ImportCards() {
     }
   };
 
+  const handleDeleteImported = async () => {
+    if (
+      window.confirm(
+        "Are you sure you want to delete ALL imported cards? This cannot be undone."
+      )
+    ) {
+      try {
+        const response = await fetch("/api/cards/delete-imported", {
+          method: "DELETE",
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Failed to delete");
+        setSuccess(`Deleted ${result.deletedCount} imported cards!`);
+        setError("");
+      } catch (err) {
+        setError("Error deleting imported cards. Please try again.");
+      }
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Import Hearthstone Cards</h1>
@@ -55,6 +75,12 @@ export default function ImportCards() {
           className="w-full p-2 bg-blue-500 text-white rounded"
         >
           Import Cards
+        </button>
+        <button
+          onClick={handleDeleteImported}
+          className="w-full p-2 bg-red-500 text-white rounded mt-2"
+        >
+          Delete All Imported Cards
         </button>
         <p className="text-sm text-gray-600">
           Find build numbers for historical metas at{" "}
