@@ -11,6 +11,7 @@ export default function RootLayout({
         <nav className="flex gap-4 p-4 bg-gray-800 text-white">
           <Link href="/create-card">Create Card</Link>
           <Link href="/import-cards">Import Cards</Link>
+          <Link href="/draft-deck">Draft Deck</Link>
           <Link href="/build-deck">Build Deck</Link>
         </nav>
         {children}

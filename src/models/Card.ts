@@ -22,7 +22,7 @@ const cardSchema = new Schema(
       ],
       required: true,
     },
-    description: { type: String, required: true },
+    description: { type: String, default: "" },
     tribe: { type: String, default: "" },
     type: {
       type: String,

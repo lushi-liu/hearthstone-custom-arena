@@ -34,6 +34,14 @@ export async function POST(req: NextRequest) {
         );
         continue;
       }
+      if (["DEATHKNIGHT", "DEMONHUNTER"].includes(apiCard.cardClass)) {
+        console.log(
+          "Skipping card due to unsupported class:",
+          apiCard.name,
+          apiCard.cardClass
+        );
+        continue;
+      }
 
       const existing = await Card.findOne({ cardId: apiCard.dbfId });
       if (!existing) {
