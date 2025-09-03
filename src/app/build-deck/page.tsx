@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 
-export default function DraftDeck() {
+export default function BuildDeck() {
   const [cards, setCards] = useState<any[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [deckName, setDeckName] = useState("");

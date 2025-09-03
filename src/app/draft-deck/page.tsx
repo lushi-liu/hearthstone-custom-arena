@@ -1,162 +1,180 @@
 "use client";
 import { useState, useEffect } from "react";
+import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
-const classes = [
-  "Mage",
-  "Shaman",
-  "Warrior",
-  "Druid",
-  "Hunter",
-  "Paladin",
-  "Priest",
-  "Rogue",
-  "Warlock",
-];
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export default function ArenaDraft() {
-  const [step, setStep] = useState("class"); // 'class', 'draft', 'complete'
   const [deckClass, setDeckClass] = useState("");
-  const [classOptions, setClassOptions] = useState<string[]>([]);
-  const [cards, setCards] = useState<any[]>([]);
-  const [selectedCards, setSelectedCards] = useState<string[]>([]);
-  const [deckName, setDeckName] = useState("");
+  const [cards, setCards] = useState([]);
+  const [deck, setDeck] = useState([]);
+  const [pickNumber, setPickNumber] = useState(1);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [hoveredCard, setHoveredCard] = useState(null);
 
-  // Randomly select 3 classes
-  useEffect(() => {
-    if (step === "class") {
-      const shuffled = classes.sort(() => Math.random() - 0.5).slice(0, 3);
-      setClassOptions(shuffled);
+  // Fetch random cards for the current pick
+  const fetchCards = async () => {
+    try {
+      const response = await fetch(`/api/cards/random?class=${deckClass}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to fetch cards");
+      setCards(data);
+      setError("");
+    } catch (err) {
+      setError("Error fetching cards. Please try again.");
     }
-  }, [step]);
-
-  // Fetch 3 random cards for the current pick
-  useEffect(() => {
-    if (step === "draft" && selectedCards.length < 30) {
-      fetch(`/api/cards/random?class=${deckClass}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.error) setError(data.error);
-          else setCards(data);
-        });
-    }
-  }, [step, selectedCards, deckClass]);
-
-  const selectClass = (cls: string) => {
-    setDeckClass(cls);
-    setStep("draft");
   };
 
-  const selectCard = (cardId: string) => {
-    if (selectedCards.length < 30) {
-      setSelectedCards([...selectedCards, cardId]);
-      if (selectedCards.length + 1 === 30) {
-        setStep("complete");
+  // Handle class selection
+  const handleClassSelect = (selectedClass) => {
+    setDeckClass(selectedClass);
+    setDeck([]);
+    setPickNumber(1);
+    setCards([]);
+    fetchCards();
+  };
+
+  // Handle card selection
+  const handleCardSelect = async (card) => {
+    if (pickNumber <= 30) {
+      setDeck([...deck, card]);
+      setPickNumber(pickNumber + 1);
+      if (pickNumber < 30) {
+        fetchCards();
       } else {
-        setCards([]); // Trigger new card fetch
+        // Save deck when complete
+        try {
+          const response = await fetch("/api/decks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: `${deckClass} Arena Draft`,
+              class: deckClass,
+              cardIds: [...deck, card].map((c) => c.cardId),
+              type: "arena",
+            }),
+          });
+          const result = await response.json();
+          if (!response.ok)
+            throw new Error(result.error || "Failed to save deck");
+          setSuccess("Deck saved successfully!");
+          setDeck([]);
+          setPickNumber(1);
+          setCards([]);
+          setDeckClass("");
+        } catch (err) {
+          setError("Error saving deck. Please try again.");
+        }
       }
     }
   };
 
-  const handleSave = async () => {
-    setError("");
-    setSuccess("");
-    if (!deckName) {
-      setError("Deck name is required");
-      return;
-    }
-    try {
-      const response = await fetch("/api/decks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: deckName,
-          class: deckClass,
-          cards: selectedCards,
-        }),
-      });
-      if (!response.ok) throw new Error("Failed to save deck");
-      setSuccess("Deck saved successfully!");
-      setDeckName("");
-      setSelectedCards([]);
-      setDeckClass("");
-      setStep("class");
-    } catch (err) {
-      setError("Error saving deck. Please try again.");
-    }
+  // Calculate mana curve
+  const manaCurve = deck.reduce((acc, card) => {
+    const mana = Math.min(card.mana, 7); // Cap at 7+ for chart
+    acc[mana] = (acc[mana] || 0) + 1;
+    return acc;
+  }, Array(8).fill(0));
+
+  const chartData = {
+    labels: ["0", "1", "2", "3", "4", "5", "6", "7+"],
+    datasets: [
+      {
+        label: "Mana Curve",
+        data: manaCurve,
+        backgroundColor: "rgba(59, 130, 246, 0.5)",
+        borderColor: "rgba(59, 130, 246, 1)",
+        borderWidth: 1,
+      },
+    ],
   };
 
+  const chartOptions = {
+    scales: {
+      y: { beginAtZero: true, ticks: { stepSize: 1 } },
+    },
+    maintainAspectRatio: false,
+  };
+
+  // Fetch cards when class is selected
+  useEffect(() => {
+    if (deckClass && pickNumber <= 30) {
+      fetchCards();
+    }
+  }, [deckClass, pickNumber]);
+
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div className="flex-1 p-4 min-w-0">
       <h1 className="text-2xl font-bold mb-4">Arena Draft</h1>
-      {error && <p className="text-red-500">{error}</p>}
-      {success && <p className="text-green-500">{success}</p>}
-
-      {step === "class" && (
-        <div>
-          <h2 className="text-xl mb-2">Choose a Class</h2>
-          <div className="flex gap-4">
-            {classOptions.map((cls) => (
-              <button
-                key={cls}
-                onClick={() => selectClass(cls)}
-                className="p-4 bg-blue-500 text-white rounded"
-              >
-                {cls}
-              </button>
-            ))}
-          </div>
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+      {success && <p className="text-green-500 mb-4">{success}</p>}
+      {!deckClass ? (
+        <div className="space-y-2 max-w-md mx-auto">
+          <h2 className="text-xl">Select a Class</h2>
+          {[
+            "Druid",
+            "Hunter",
+            "Mage",
+            "Paladin",
+            "Priest",
+            "Rogue",
+            "Shaman",
+            "Warlock",
+            "Warrior",
+          ].map((cls) => (
+            <button
+              key={cls}
+              onClick={() => handleClassSelect(cls)}
+              className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              {cls}
+            </button>
+          ))}
         </div>
-      )}
-
-      {step === "draft" && (
-        <div>
-          <h2 className="text-xl mb-2">
-            Pick {selectedCards.length + 1} of 30 (Class: {deckClass})
+      ) : (
+        <div className="flex flex-wrap gap-4 justify-center">
+          <h2 className="text-xl mb-4 w-full text-center">
+            Pick {pickNumber} of 30 - {deckClass}
           </h2>
-          <div className="grid grid-cols-3 gap-4">
-            {cards.map((card) => (
-              <div
-                key={card._id}
-                onClick={() => selectCard(card._id)}
-                className="border p-2 cursor-pointer hover:bg-blue-100"
-              >
-                <img
-                  src={card.imageUrl || "/placeholder.png"}
-                  alt={card.name}
-                  className="w-full h-32 object-contain"
-                />
-                <p>
-                  {card.name} ({card.mana} Mana)
+          {cards.map((card) => (
+            <div
+              key={card.cardId}
+              className="inline-block text-center max-w-[200px]"
+            >
+              <img
+                src={card.imageUrl}
+                alt={card.name}
+                className="w-full max-w-[200px] rounded object-contain cursor-pointer"
+                onClick={() => handleCardSelect(card)}
+              />
+              <div className="mt-1">
+                <p className="font-bold text-xs truncate">{card.name}</p>
+                <p className="text-xs">
+                  {card.mana} Mana {card.type}
                 </p>
-                <p>
-                  {card.rarity} {card.type} - {card.class}
-                </p>
+                <p className="text-xs">{card.class}</p>
+                <p className="text-xs truncate">{card.description}</p>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {step === "complete" && (
-        <div>
-          <h2 className="text-xl mb-2">Deck Complete! ({deckClass})</h2>
-          <div className="mb-4">
-            <label className="block">Deck Name</label>
-            <input
-              type="text"
-              value={deckName}
-              onChange={(e) => setDeckName(e.target.value)}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-          <button
-            onClick={handleSave}
-            className="w-full p-2 bg-blue-500 text-white rounded"
-          >
-            Save Deck
-          </button>
+            </div>
+          ))}
         </div>
       )}
     </div>
