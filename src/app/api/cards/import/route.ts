@@ -25,18 +25,8 @@ export async function POST(req: NextRequest) {
       : apiCards;
 
     const imported = [];
-    const skipped = [];
     for (const apiCard of filteredCards) {
       if (!["MINION", "SPELL", "WEAPON"].includes(apiCard.type)) {
-        console.log(
-          "Skipping card due to unsupported type:",
-          apiCard.name,
-          apiCard.type
-        );
-        skipped.push({
-          name: apiCard.name,
-          reason: `Unsupported type: ${apiCard.type}`,
-        });
         continue;
       }
 
@@ -44,14 +34,46 @@ export async function POST(req: NextRequest) {
         cardId: apiCard.dbfId?.toString(),
       });
       if (existing) {
-        console.log(
-          "Skipping card due to existing dbfId:",
-          apiCard.name,
-          apiCard.dbfId
-        );
-        skipped.push({ name: apiCard.name, reason: "Already exists" });
         continue;
       }
+
+      // Determine card class (check cardClass, classes, playerClass, default to NEUTRAL)
+      const validClasses = [
+        "NEUTRAL",
+        "MAGE",
+        "SHAMAN",
+        "WARRIOR",
+        "DRUID",
+        "HUNTER",
+        "PALADIN",
+        "PRIEST",
+        "ROGUE",
+        "WARLOCK",
+        "Neutral",
+        "Mage",
+        "Shaman",
+        "Warrior",
+        "Druid",
+        "Hunter",
+        "Paladin",
+        "Priest",
+        "Rogue",
+        "Warlock",
+      ];
+      let cardClass = apiCard.cardClass;
+      if (
+        !cardClass &&
+        apiCard.classes &&
+        Array.isArray(apiCard.classes) &&
+        apiCard.classes.length > 0
+      ) {
+        cardClass = apiCard.classes[0]; // Use first class for multi-class cards
+      }
+      if (!cardClass && apiCard.playerClass) {
+        cardClass = apiCard.playerClass; // Fallback to playerClass
+      }
+      cardClass =
+        cardClass && validClasses.includes(cardClass) ? cardClass : "NEUTRAL";
 
       const cardData = {
         name: apiCard.name ?? "Unknown",
@@ -68,7 +90,7 @@ export async function POST(req: NextRequest) {
             ? ""
             : apiCard.race ?? "",
         type: apiCard.type,
-        class: apiCard.cardClass ?? "Neutral",
+        class: cardClass,
         source: `api:${build}`,
         cardId: apiCard.dbfId?.toString() ?? `temp_${Date.now()}`,
         imageUrl: `https://art.hearthstonejson.com/v1/render/latest/enUS/256x/${apiCard.id}.png`,
@@ -79,19 +101,17 @@ export async function POST(req: NextRequest) {
         await card.save();
         imported.push(card);
       } catch (error: any) {
-        console.error("Failed to save card:", apiCard.name, error.message);
-        skipped.push({
-          name: apiCard.name,
-          reason: `Validation error: ${error.message}`,
-        });
+        console.error(
+          "Failed to save card:",
+          apiCard.name,
+          "Error:",
+          error.message
+        );
       }
     }
 
-    console.log("Skipped cards:", skipped.length, "Skipped:", skipped);
-    return NextResponse.json({
-      importedCount: imported.length,
-      skippedCount: skipped.length,
-    });
+    console.log("Imported cards:", imported.length);
+    return NextResponse.json({ importedCount: imported.length });
   } catch (error: any) {
     console.error("Import error:", error.message, error.stack);
     return NextResponse.json(
