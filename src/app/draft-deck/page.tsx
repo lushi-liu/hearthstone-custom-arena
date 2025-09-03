@@ -122,59 +122,110 @@ export default function ArenaDraft() {
   }, [deckClass, pickNumber]);
 
   return (
-    <div className="flex-1 p-4 min-w-0">
-      <h1 className="text-2xl font-bold mb-4">Arena Draft</h1>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-      {success && <p className="text-green-500 mb-4">{success}</p>}
-      {!deckClass ? (
-        <div className="space-y-2 max-w-md mx-auto">
-          <h2 className="text-xl">Select a Class</h2>
-          {[
-            "Druid",
-            "Hunter",
-            "Mage",
-            "Paladin",
-            "Priest",
-            "Rogue",
-            "Shaman",
-            "Warlock",
-            "Warrior",
-          ].map((cls) => (
-            <button
-              key={cls}
-              onClick={() => handleClassSelect(cls)}
-              className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              {cls}
-            </button>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-wrap gap-4 justify-center">
-          <h2 className="text-xl mb-4 w-full text-center">
-            Pick {pickNumber} of 30 - {deckClass}
-          </h2>
-          {cards.map((card) => (
-            <div
-              key={card.cardId}
-              className="inline-block text-center max-w-[200px]"
-            >
-              <img
-                src={card.imageUrl}
-                alt={card.name}
-                className="w-full max-w-[200px] rounded object-contain cursor-pointer"
-                onClick={() => handleCardSelect(card)}
-              />
-              <div className="mt-1">
-                <p className="font-bold text-xs truncate">{card.name}</p>
-                <p className="text-xs">
-                  {card.mana} Mana {card.type}
-                </p>
-                <p className="text-xs">{card.class}</p>
-                <p className="text-xs truncate">{card.description}</p>
-              </div>
+    <div className="flex min-h-screen bg-gray-100">
+      {/* Main Content: Draft Cards */}
+      <div className="flex-1 p-4">
+        <h1 className="text-2xl font-bold mb-4">Arena Draft</h1>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        {success && <p className="text-green-500 mb-4">{success}</p>}
+        {!deckClass ? (
+          <div className="space-y-2">
+            <h2 className="text-xl">Select a Class</h2>
+            {[
+              "Druid",
+              "Hunter",
+              "Mage",
+              "Paladin",
+              "Priest",
+              "Rogue",
+              "Shaman",
+              "Warlock",
+              "Warrior",
+            ].map((cls) => (
+              <button
+                key={cls}
+                onClick={() => handleClassSelect(cls)}
+                className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                {cls}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div>
+            <h2 className="text-xl mb-4">
+              Pick {pickNumber} of 30 - {deckClass}
+            </h2>
+            <div className="flex flex-row gap-4">
+              {cards.map((card) => (
+                <div
+                  key={card.cardId}
+                  className="w-1/3 p-2 bg-white rounded shadow hover:shadow-lg cursor-pointer relative"
+                  onClick={() => handleCardSelect(card)}
+                >
+                  <img
+                    src={card.imageUrl}
+                    alt={card.name}
+                    className="w-full rounded"
+                  />
+                  <div className="mt-2 text-center">
+                    <p className="font-bold">{card.name}</p>
+                    <p>
+                      {card.mana} Mana {card.type}
+                    </p>
+                    <p>{card.class}</p>
+                    <p>{card.description}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+        )}
+      </div>
+
+      {/* Sidebar: Deck List and Mana Curve */}
+      {deckClass && (
+        <div className="w-1/4 p-4 bg-gray-200 border-l border-gray-300">
+          <h2 className="text-xl font-bold mb-4">
+            Current Deck ({deck.length}/30)
+          </h2>
+          <div className="max-h-[50vh] overflow-y-auto">
+            {deck.map((card, index) => (
+              <div
+                key={`${card.cardId}-${index}`}
+                className="relative p-2 hover:bg-gray-300"
+                onMouseEnter={() => setHoveredCard(card)}
+                onMouseLeave={() => setHoveredCard(null)}
+              >
+                <p>
+                  {card.name} ({card.mana} Mana)
+                </p>
+                {hoveredCard && hoveredCard.cardId === card.cardId && (
+                  <div className="absolute z-10 p-2 bg-white rounded shadow-lg left-full top-0 ml-2 w-64">
+                    <img
+                      src={card.imageUrl}
+                      alt={card.name}
+                      className="w-full rounded"
+                    />
+                    <p className="font-bold">{card.name}</p>
+                    <p>
+                      {card.mana} Mana {card.type}
+                    </p>
+                    <p>{card.class}</p>
+                    <p>{card.description}</p>
+                    {card.attack > 0 && <p>Attack: {card.attack}</p>}
+                    {card.health > 0 && <p>Health: {card.health}</p>}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="mt-4">
+            <h3 className="text-lg font-bold">Mana Curve</h3>
+            <div className="h-48">
+              <Bar data={chartData} options={chartOptions} />
+            </div>
+          </div>
         </div>
       )}
     </div>
