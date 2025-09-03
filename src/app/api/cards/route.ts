@@ -2,39 +2,72 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Card from "@/models/Card";
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     await connectDB();
-    const data = await req.json();
+    const { searchParams } = new URL(req.url);
+    const deckClass = searchParams.get("class") || "Neutral";
+    const seed = parseInt(searchParams.get("seed") || "0");
 
-    // Validate based on type
-    if (data.type === "Spell") {
-      data.attack = 0;
-      data.health = 0;
-      data.tribe = "";
-    } else if (data.type === "Weapon") {
-      data.tribe = "";
+    // Rarity probabilities
+    const rarityRoll = Math.random() * 100;
+    let rarity: string;
+    if (rarityRoll < 1) rarity = "Legendary";
+    else if (rarityRoll < 8) rarity = "Epic";
+    else if (rarityRoll < 30) rarity = "Rare";
+    else rarity = "Common";
+
+    // Fetch 6 cards to ensure enough unique ones
+    const cards = await Card.aggregate([
+      {
+        $match: {
+          rarity: { $in: [rarity, rarity.toUpperCase()] },
+          class: {
+            $in: [deckClass, deckClass.toUpperCase(), "Neutral", "NEUTRAL"],
+          },
+        },
+      },
+      { $sample: { size: 6 } },
+    ]);
+
+    // Remove duplicates by cardId
+    const uniqueCards = [];
+    const seenCardIds = new Set();
+    for (const card of cards) {
+      if (!seenCardIds.has(card.cardId)) {
+        uniqueCards.push(card);
+        seenCardIds.add(card.cardId);
+      }
+      if (uniqueCards.length === 3) break;
     }
 
-    const card = new Card({ ...data, cardId: `custom_${Date.now()}` });
-    await card.save();
-    return NextResponse.json(card, { status: 201 });
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to create card" },
-      { status: 500 }
-    );
-  }
-}
+    if (uniqueCards.length < 3) {
+      console.error("Not enough unique cards:", {
+        deckClass,
+        rarity,
+        available: cards.length,
+      });
+      return NextResponse.json(
+        { error: "Not enough unique cards available" },
+        { status: 400 }
+      );
+    }
 
-export async function GET() {
-  try {
-    await connectDB();
-    const cards = await Card.find({}).sort({ createdAt: -1 });
-    return NextResponse.json(cards);
-  } catch (error) {
+    // Log selected cards for debugging
+    console.log(
+      "Fetched cards for class:",
+      deckClass,
+      "rarity:",
+      rarity,
+      "cards:",
+      uniqueCards.map((c) => c.name)
+    );
+
+    return NextResponse.json(uniqueCards);
+  } catch (error: any) {
+    console.error("Random cards error:", error.message);
     return NextResponse.json(
-      { error: "Failed to fetch cards" },
+      { error: "Failed to fetch random cards" },
       { status: 500 }
     );
   }
