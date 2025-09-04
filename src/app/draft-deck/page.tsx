@@ -95,6 +95,13 @@ export default function DraftDeck() {
       await fetchCards(); // Fetch next set of cards
     } else {
       try {
+        const payload = {
+          name: `${deckClass} Arena Draft`,
+          class: deckClass,
+          cardIds: [...deck, card].map((c) => c.cardId),
+          type: "arena",
+        };
+        console.log("Saving deck payload:", payload);
         const response = await fetch("/api/decks", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -115,6 +122,7 @@ export default function DraftDeck() {
         setDeckClass("");
         setClassChoices(getRandomClasses());
       } catch (err) {
+        console.error("Deck save error");
         setError("Error saving deck. Please try again.");
       }
     }

@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const deckClass = searchParams.get("class") || "Neutral";
     const seed = parseInt(searchParams.get("seed") || "0");
+    const limit = parseInt(searchParams.get("limit") || "3"); // Support limit for home page
 
     // Rarity probabilities
     const rarityRoll = Math.random() * 100;
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
     else if (rarityRoll < 30) rarity = "Rare";
     else rarity = "Common";
 
-    // Fetch 6 cards to ensure enough unique ones
+    // Fetch cards
     const cards = await Card.aggregate([
       {
         $match: {
@@ -34,14 +35,15 @@ export async function GET(req: NextRequest) {
     const uniqueCards = [];
     const seenCardIds = new Set();
     for (const card of cards) {
-      if (!seenCardIds.has(card.cardId)) {
-        uniqueCards.push(card);
-        seenCardIds.add(card.cardId);
+      const cardId = card.cardId.toString(); // Ensure string
+      if (!seenCardIds.has(cardId)) {
+        uniqueCards.push({ ...card, cardId });
+        seenCardIds.add(cardId);
       }
-      if (uniqueCards.length === 3) break;
+      if (uniqueCards.length === limit) break;
     }
 
-    if (uniqueCards.length < 3) {
+    if (uniqueCards.length < limit) {
       console.error("Not enough unique cards:", {
         deckClass,
         rarity,
@@ -59,7 +61,7 @@ export async function GET(req: NextRequest) {
       "rarity:",
       rarity,
       "cards:",
-      uniqueCards.map((c) => c.name)
+      uniqueCards.map((c) => ({ name: c.name, cardId: c.cardId }))
     );
 
     return NextResponse.json(uniqueCards);

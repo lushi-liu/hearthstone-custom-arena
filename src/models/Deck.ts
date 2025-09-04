@@ -1,38 +1,11 @@
-import { Schema, model, models } from "mongoose";
+import mongoose from "mongoose";
 
-const deckSchema = new Schema(
-  {
-    name: { type: String, required: true },
-    class: {
-      type: String,
-      enum: [
-        "Neutral",
-        "NEUTRAL",
-        "Mage",
-        "MAGE",
-        "Shaman",
-        "SHAMAN",
-        "Warrior",
-        "WARRIOR",
-        "Druid",
-        "DRUID",
-        "Hunter",
-        "HUNTER",
-        "Paladin",
-        "PALADIN",
-        "Priest",
-        "PRIEST",
-        "Rogue",
-        "ROGUE",
-        "Warlock",
-        "WARLOCK",
-      ],
-      required: true,
-    },
-    cards: [{ type: Schema.Types.ObjectId, ref: "Card" }],
-  },
-  { timestamps: true }
-);
+const DeckSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  class: { type: String, required: true },
+  cardIds: [{ type: String, required: true }],
+  type: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
 
-const Deck = models.Deck || model("Deck", deckSchema);
-export default Deck;
+export default mongoose.models.Deck || mongoose.model("Deck", DeckSchema);
