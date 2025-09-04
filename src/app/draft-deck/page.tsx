@@ -29,9 +29,13 @@ export default function ArenaDraft() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [hoveredCard, setHoveredCard] = useState(null);
+  const [isFetching, setIsFetching] = useState(false);
 
   // Fetch random cards for the current pick
   const fetchCards = async () => {
+    if (isFetching) return; // Prevent double fetch
+    setIsFetching(true);
+    console.log("Fetching cards for pick:", pickNumber, "class:", deckClass);
     try {
       const response = await fetch(`/api/cards/random?class=${deckClass}`);
       const data = await response.json();
@@ -40,6 +44,8 @@ export default function ArenaDraft() {
       setError("");
     } catch (err) {
       setError("Error fetching cards. Please try again.");
+    } finally {
+      setIsFetching(false);
     }
   };
 
@@ -49,40 +55,39 @@ export default function ArenaDraft() {
     setDeck([]);
     setPickNumber(1);
     setCards([]);
-    fetchCards();
+    setSuccess("");
+    setError("");
   };
 
   // Handle card selection
   const handleCardSelect = async (card) => {
-    if (pickNumber <= 30) {
-      setDeck([...deck, card]);
-      setPickNumber(pickNumber + 1);
-      if (pickNumber < 30) {
-        fetchCards();
-      } else {
-        // Save deck when complete
-        try {
-          const response = await fetch("/api/decks", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: `${deckClass} Arena Draft`,
-              class: deckClass,
-              cardIds: [...deck, card].map((c) => c.cardId),
-              type: "arena",
-            }),
-          });
-          const result = await response.json();
-          if (!response.ok)
-            throw new Error(result.error || "Failed to save deck");
-          setSuccess("Deck saved successfully!");
-          setDeck([]);
-          setPickNumber(1);
-          setCards([]);
-          setDeckClass("");
-        } catch (err) {
-          setError("Error saving deck. Please try again.");
-        }
+    if (isFetching || pickNumber > 30) return;
+    console.log("Selected card:", card.name, "for pick:", pickNumber);
+    setDeck([...deck, card]);
+    setPickNumber(pickNumber + 1);
+    if (pickNumber === 30) {
+      // Save deck when complete
+      try {
+        const response = await fetch("/api/decks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: `${deckClass} Arena Draft`,
+            class: deckClass,
+            cardIds: [...deck, card].map((c) => c.cardId),
+            type: "arena",
+          }),
+        });
+        const result = await response.json();
+        if (!response.ok)
+          throw new Error(result.error || "Failed to save deck");
+        setSuccess("Deck saved successfully!");
+        setDeck([]);
+        setPickNumber(1);
+        setCards([]);
+        setDeckClass("");
+      } catch (err) {
+        setError("Error saving deck. Please try again.");
       }
     }
   };
@@ -156,28 +161,30 @@ export default function ArenaDraft() {
             <h2 className="text-xl mb-4">
               Pick {pickNumber} of 30 - {deckClass}
             </h2>
-            <div className="flex flex-row gap-4">
-              {cards.map((card) => (
-                <div
-                  key={card.cardId}
-                  className="w-1/3 p-2 bg-white rounded shadow hover:shadow-lg cursor-pointer relative"
-                  onClick={() => handleCardSelect(card)}
-                >
-                  <img
-                    src={card.imageUrl}
-                    alt={card.name}
-                    className="w-full rounded"
-                  />
-                  <div className="mt-2 text-center">
-                    <p className="font-bold">{card.name}</p>
-                    <p>
-                      {card.mana} Mana {card.type}
-                    </p>
-                    <p>{card.class}</p>
-                    <p>{card.description}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="flex flex-row gap-4 w-full">
+              {isFetching ? (
+                <p>Loading cards...</p>
+              ) : (
+                cards.map((card) => (
+                  <button
+                    key={card.cardId}
+                    onClick={() => handleCardSelect(card)}
+                    className={` flex-none w-1/3 p-2 bg-white rounded shadow hover:shadow-lg cursor-pointer ${
+                      isFetching
+                        ? "opacity-50 cursor-not-allowed"
+                        : "cursor-pointer"
+                    }`}
+                  >
+                    <div className="w-full">
+                      <img
+                        src={card.imageUrl}
+                        alt={card.name}
+                        className="w-full rounded"
+                      />
+                    </div>
+                  </button>
+                ))
+              )}
             </div>
           </div>
         )}
@@ -191,15 +198,14 @@ export default function ArenaDraft() {
           </h2>
           <div className="max-h-[50vh] overflow-y-auto">
             {deck.map((card, index) => (
-              <div
-                key={`${card.cardId}-${index}`}
-                className="relative p-2 hover:bg-gray-300"
-                onMouseEnter={() => setHoveredCard(card)}
-                onMouseLeave={() => setHoveredCard(null)}
-              >
-                <p>
+              <div key={`${card.cardId}-${index}`} className="relative p-2">
+                <span
+                  className="inline-block hover:bg-gray-300 cursor-pointer"
+                  onMouseEnter={() => setHoveredCard(card)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                >
                   {card.name} ({card.mana} Mana)
-                </p>
+                </span>
                 {hoveredCard && hoveredCard.cardId === card.cardId && (
                   <div className="absolute z-10 p-2 bg-white rounded shadow-lg left-full top-0 ml-2 w-64">
                     <img
@@ -207,14 +213,6 @@ export default function ArenaDraft() {
                       alt={card.name}
                       className="w-full rounded"
                     />
-                    <p className="font-bold">{card.name}</p>
-                    <p>
-                      {card.mana} Mana {card.type}
-                    </p>
-                    <p>{card.class}</p>
-                    <p>{card.description}</p>
-                    {card.attack > 0 && <p>Attack: {card.attack}</p>}
-                    {card.health > 0 && <p>Health: {card.health}</p>}
                   </div>
                 )}
               </div>

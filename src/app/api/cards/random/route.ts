@@ -17,27 +17,53 @@ export async function GET(req: NextRequest) {
     else if (rarityRoll < 30) rarity = "Rare";
     else rarity = "Common";
 
-    // Fetch 3 random cards of the chosen rarity and class (or Neutral)
+    // Fetch 6 cards to ensure enough unique ones
     const cards = await Card.aggregate([
       {
         $match: {
-          rarity: { $in: [rarity, rarity.toUpperCase()] }, // Handle API case
+          rarity: { $in: [rarity, rarity.toUpperCase()] },
           class: {
             $in: [deckClass, deckClass.toUpperCase(), "Neutral", "NEUTRAL"],
           },
         },
       },
-      { $sample: { size: 3 } }, // Randomly select 3
+      { $sample: { size: 6 } },
     ]);
 
-    if (cards.length < 3) {
+    // Remove duplicates by cardId
+    const uniqueCards = [];
+    const seenCardIds = new Set();
+    for (const card of cards) {
+      if (!seenCardIds.has(card.cardId)) {
+        uniqueCards.push(card);
+        seenCardIds.add(card.cardId);
+      }
+      if (uniqueCards.length === 3) break;
+    }
+
+    if (uniqueCards.length < 3) {
+      console.error("Not enough unique cards:", {
+        deckClass,
+        rarity,
+        available: cards.length,
+      });
       return NextResponse.json(
-        { error: "Not enough cards available" },
+        { error: "Not enough unique cards available" },
         { status: 400 }
       );
     }
 
-    return NextResponse.json(cards);
+    // Log selected cards for debugging
+    console.log(
+      "Fetched cards for class:",
+      deckClass,
+      "rarity:",
+      rarity,
+      "cards:",
+      uniqueCards.map((c) => c.name)
+    );
+
+    return NextResponse.json(uniqueCards);
   } catch (error: any) {
     console.error("Random cards error:", error.message);
     return NextResponse.json(
