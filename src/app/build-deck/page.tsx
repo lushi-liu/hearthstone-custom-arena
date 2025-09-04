@@ -1,8 +1,9 @@
 "use client";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 
 export default function BuildDeck() {
-  const [cards, setCards] = useState<any[]>([]);
+  const [cards, setCards] = useState([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [deckName, setDeckName] = useState("");
   const [deckClass, setDeckClass] = useState("Neutral");
@@ -94,9 +95,11 @@ export default function BuildDeck() {
               selected.includes(card._id) ? "bg-blue-200" : ""
             }`}
           >
-            <img
+            <Image
               src={card.imageUrl || "/placeholder.png"}
               alt={card.name}
+              width={300}
+              height={300}
               className="w-full h-32 object-contain"
             />
             <p>

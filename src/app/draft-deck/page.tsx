@@ -198,6 +198,8 @@ export default function DraftDeck() {
                       <Image
                         src={card.imageUrl}
                         alt={card.name}
+                        width={300}
+                        height={300}
                         className="w-full rounded"
                       />
                     </div>

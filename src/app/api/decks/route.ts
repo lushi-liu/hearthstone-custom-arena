@@ -21,8 +21,8 @@ export async function POST(req: NextRequest) {
     const deck = new Deck({ name, class: deckClass, cards });
     await deck.save();
     return NextResponse.json(deck, { status: 201 });
-  } catch (error: any) {
-    console.error("Deck creation error:", error.message);
+  } catch (error) {
+    console.error("Deck creation error");
     return NextResponse.json(
       { error: "Failed to create deck" },
       { status: 500 }
@@ -35,8 +35,8 @@ export async function GET() {
     await connectDB();
     const decks = await Deck.find({}).populate("cards").sort({ createdAt: -1 });
     return NextResponse.json(decks);
-  } catch (error: any) {
-    console.error("Deck fetch error:", error.message);
+  } catch (error) {
+    console.error("Deck fetch error");
     return NextResponse.json(
       { error: "Failed to fetch decks" },
       { status: 500 }

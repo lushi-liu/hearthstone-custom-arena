@@ -53,8 +53,8 @@ export async function GET(req: NextRequest) {
     }*/
 
     return NextResponse.json(cards);
-  } catch (error: any) {
-    console.error("Random cards error:", error.message);
+  } catch (error) {
+    console.error("Random cards error");
     return NextResponse.json(
       { error: "Failed to fetch random cards" },
       { status: 500 }
