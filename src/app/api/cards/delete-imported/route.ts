@@ -12,8 +12,8 @@ export async function DELETE(req: NextRequest) {
       { deletedCount: result.deletedCount },
       { status: 200 }
     );
-  } catch (error: any) {
-    console.error("Delete imported cards error:", error.message);
+  } catch (error) {
+    console.error("Delete imported cards error");
     return NextResponse.json(
       { error: "Failed to delete imported cards" },
       { status: 500 }

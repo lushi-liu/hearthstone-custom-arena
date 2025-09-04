@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     const apiCards = await response.json();
     console.log("Fetched cards:", apiCards.length);
     const filteredCards = set
-      ? apiCards.filter((c: any) => c.set === set)
+      ? apiCards.filter((c) => c.set === set)
       : apiCards;
 
     const imported = [];
@@ -100,22 +100,17 @@ export async function POST(req: NextRequest) {
         const card = new Card(cardData);
         await card.save();
         imported.push(card);
-      } catch (error: any) {
-        console.error(
-          "Failed to save card:",
-          apiCard.name,
-          "Error:",
-          error.message
-        );
+      } catch (error) {
+        console.error("Failed to save card:", apiCard.name, "Error");
       }
     }
 
     console.log("Imported cards:", imported.length);
     return NextResponse.json({ importedCount: imported.length });
-  } catch (error: any) {
-    console.error("Import error:", error.message, error.stack);
+  } catch (error) {
+    console.error("Import error");
     return NextResponse.json(
-      { error: `Failed to import cards: ${error.message}` },
+      { error: "Failed to import cards" },
       { status: 500 }
     );
   }
