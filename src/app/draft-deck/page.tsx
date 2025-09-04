@@ -21,7 +21,7 @@ ChartJS.register(
   Legend
 );
 
-export default function ArenaDraft() {
+export default function DraftDeck() {
   const [deckClass, setDeckClass] = useState("");
   const [cards, setCards] = useState([]);
   const [deck, setDeck] = useState([]);
@@ -51,7 +51,7 @@ export default function ArenaDraft() {
 
   // Fetch random cards for the current pick
   const fetchCards = async () => {
-    if (isFetching) return; // Prevent double fetch
+    if (isFetching) return;
     setIsFetching(true);
     console.log("Fetching cards for pick:", pickNumber, "class:", deckClass);
     try {
@@ -84,7 +84,6 @@ export default function ArenaDraft() {
     setDeck([...deck, card]);
     setPickNumber(pickNumber + 1);
     if (pickNumber === 30) {
-      // Save deck when complete
       try {
         const response = await fetch("/api/decks", {
           method: "POST",
@@ -104,6 +103,7 @@ export default function ArenaDraft() {
         setPickNumber(1);
         setCards([]);
         setDeckClass("");
+        setClassChoices(getRandomClasses());
       } catch (err) {
         setError("Error saving deck. Please try again.");
       }
@@ -112,7 +112,7 @@ export default function ArenaDraft() {
 
   // Calculate mana curve
   const manaCurve = deck.reduce((acc, card) => {
-    const mana = Math.min(card.mana, 7); // Cap at 7+ for chart
+    const mana = Math.min(card.mana, 7);
     acc[mana] = (acc[mana] || 0) + 1;
     return acc;
   }, Array(8).fill(0));
@@ -137,6 +137,13 @@ export default function ArenaDraft() {
     maintainAspectRatio: false,
   };
 
+  // Sort deck by mana cost, then name
+  const sortedDeck = [...deck].sort((a, b) => {
+    if (a.mana !== b.mana) return a.mana - b.mana;
+    return a.name.localeCompare(b.name);
+  });
+
+  // Initialize class choices on mount
   useEffect(() => {
     setClassChoices(getRandomClasses());
   }, []);
@@ -149,7 +156,7 @@ export default function ArenaDraft() {
   }, [deckClass, pickNumber]);
 
   return (
-    <div className="flex min-h-screen bg-gray-100 text-black">
+    <div className="flex min-h-screen bg-gray-100 text-black pt-16">
       {/* Main Content: Draft Cards */}
       <div className="flex-1 p-4">
         <h1 className="text-2xl font-bold mb-4">Arena Draft</h1>
@@ -181,13 +188,13 @@ export default function ArenaDraft() {
                   <button
                     key={card.cardId}
                     onClick={() => handleCardSelect(card)}
-                    className={` flex-none w-1/3 p-2 bg-white rounded shadow hover:shadow-lg cursor-pointer ${
+                    className={`flex-none w-1/3 bg-white rounded shadow hover:shadow-lg ${
                       isFetching
                         ? "opacity-50 cursor-not-allowed"
                         : "cursor-pointer"
                     }`}
                   >
-                    <div className="w-full">
+                    <div className="p-2">
                       <img
                         src={card.imageUrl}
                         alt={card.name}
@@ -208,22 +215,22 @@ export default function ArenaDraft() {
           <h2 className="text-xl font-bold mb-4">
             Current Deck ({deck.length}/30)
           </h2>
-          <div className="max-h-[50vh] overflow-y-auto">
-            {deck.map((card, index) => (
+          <div className="max-h-[50vh] overflow-y-auto perspective-1000">
+            {sortedDeck.map((card, index) => (
               <div key={`${card.cardId}-${index}`} className="relative p-2">
                 <span
-                  className="inline-block hover:bg-gray-300 cursor-pointer"
+                  className="inline-block w-fit hover:bg-gray-300 cursor-pointer"
                   onMouseEnter={() => setHoveredCard(card)}
                   onMouseLeave={() => setHoveredCard(null)}
                 >
                   {card.name} ({card.mana} Mana)
                 </span>
                 {hoveredCard && hoveredCard.cardId === card.cardId && (
-                  <div className="absolute z-10 p-2 bg-white rounded shadow-lg left-full top-0 ml-2 w-64">
+                  <div className="absolute z-10 left-full top-0 ml-2 w-64 transform transition-transform duration-200 hover:scale-110 hover:translate-z-10">
                     <img
                       src={card.imageUrl}
                       alt={card.name}
-                      className="w-full rounded"
+                      className="w-full rounded shadow-lg"
                     />
                   </div>
                 )}
