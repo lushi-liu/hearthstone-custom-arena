@@ -30,6 +30,24 @@ export default function ArenaDraft() {
   const [success, setSuccess] = useState("");
   const [hoveredCard, setHoveredCard] = useState(null);
   const [isFetching, setIsFetching] = useState(false);
+  const [classChoices, setClassChoices] = useState([]);
+
+  const allClasses = [
+    "Druid",
+    "Hunter",
+    "Mage",
+    "Paladin",
+    "Priest",
+    "Rogue",
+    "Shaman",
+    "Warlock",
+    "Warrior",
+  ];
+
+  const getRandomClasses = () => {
+    const shuffled = [...allClasses].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 3);
+  };
 
   // Fetch random cards for the current pick
   const fetchCards = async () => {
@@ -119,6 +137,10 @@ export default function ArenaDraft() {
     maintainAspectRatio: false,
   };
 
+  useEffect(() => {
+    setClassChoices(getRandomClasses());
+  }, []);
+
   // Fetch cards when class is selected
   useEffect(() => {
     if (deckClass && pickNumber <= 30) {
@@ -127,7 +149,7 @@ export default function ArenaDraft() {
   }, [deckClass, pickNumber]);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-100 text-black">
       {/* Main Content: Draft Cards */}
       <div className="flex-1 p-4">
         <h1 className="text-2xl font-bold mb-4">Arena Draft</h1>
@@ -136,17 +158,7 @@ export default function ArenaDraft() {
         {!deckClass ? (
           <div className="space-y-2">
             <h2 className="text-xl">Select a Class</h2>
-            {[
-              "Druid",
-              "Hunter",
-              "Mage",
-              "Paladin",
-              "Priest",
-              "Rogue",
-              "Shaman",
-              "Warlock",
-              "Warrior",
-            ].map((cls) => (
+            {classChoices.map((cls) => (
               <button
                 key={cls}
                 onClick={() => handleClassSelect(cls)}
