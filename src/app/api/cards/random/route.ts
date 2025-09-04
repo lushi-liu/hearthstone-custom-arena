@@ -53,7 +53,6 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Log selected cards for debugging
     console.log(
       "Fetched cards for class:",
       deckClass,
