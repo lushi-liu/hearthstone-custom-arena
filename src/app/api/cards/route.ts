@@ -6,57 +6,28 @@ export async function GET(req: NextRequest) {
   try {
     await connectDB();
     const { searchParams } = new URL(req.url);
-    const deckClass = searchParams.get("class") || "Neutral";
-    const seed = parseInt(searchParams.get("seed") || "0");
+    const className = searchParams.get("class") || "";
+    const limit = parseInt(searchParams.get("limit") || "3");
 
-    // Rarity probabilities
-    const rarityRoll = Math.random() * 100;
-    let rarity: string;
-    if (rarityRoll < 1) rarity = "Legendary";
-    else if (rarityRoll < 8) rarity = "Epic";
-    else if (rarityRoll < 30) rarity = "Rare";
-    else rarity = "Common";
-
+    const query = className ? { class: className.toUpperCase() } : {};
     const cards = await Card.aggregate([
-      {
-        $match: {
-          rarity: { $in: [rarity, rarity.toUpperCase()] },
-          class: {
-            $in: [deckClass, deckClass.toUpperCase(), "Neutral", "NEUTRAL"],
-          },
-        },
-      },
-      { $sample: { size: 3 } },
+      { $match: query },
+      { $sample: { size: limit } },
     ]);
 
-    // Remove duplicates by cardId
-    /*const uniqueCards = [];
-    const seenCardIds = new Set();
-    for (const card of cards) {
-      if (!seenCardIds.has(card.cardId)) {
-        uniqueCards.push(card);
-        seenCardIds.add(card.cardId);
-      }
-      if (uniqueCards.length === 3) break;
+    if (!cards.length) {
+      return NextResponse.json({ error: "No cards found" }, { status: 404 });
     }
 
-    if (uniqueCards.length < 3) {
-      console.error("Not enough unique cards:", {
-        deckClass,
-        rarity,
-        available: cards.length,
-      });
-      return NextResponse.json(
-        { error: "Not enough unique cards available" },
-        { status: 400 }
-      );
-    }*/
-
+    console.log(
+      `Fetched cards for class: ${className || "any"} limit: ${limit} cards:`,
+      cards.map((c) => c.name)
+    );
     return NextResponse.json(cards);
   } catch (error) {
-    console.error("Random cards error");
+    console.error("Error fetching cards");
     return NextResponse.json(
-      { error: "Failed to fetch random cards" },
+      { error: "Failed to fetch cards" },
       { status: 500 }
     );
   }

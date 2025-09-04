@@ -6,6 +6,12 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "art.hearthstonejson.com",
+        pathname: "/v1/render/**",
+      },
+      {
+        protocol: "https",
+        hostname: "via.placeholder.com",
+        pathname: "/**",
       },
     ],
   },
