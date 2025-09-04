@@ -1,20 +1,12 @@
-import Link from "next/link";
+import "./globals.css";
+import Navbar from "@/components/Navbar";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
-        <nav className="flex gap-4 p-4 bg-gray-800 text-white">
-          <Link href="/create-card">Create Card</Link>
-          <Link href="/import-cards">Import Cards</Link>
-          <Link href="/draft-deck">Draft Deck</Link>
-          <Link href="/build-deck">Build Deck</Link>
-        </nav>
-        {children}
+      <body className="bg-gray-100">
+        <Navbar />
+        <main>{children}</main>
       </body>
     </html>
   );
