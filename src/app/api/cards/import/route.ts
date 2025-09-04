@@ -2,6 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Card from "@/models/Card";
 
+interface HearthstoneCard {
+  id: string;
+  dbfId: number;
+  name: string;
+  set?: string;
+  type: string;
+  cost?: number;
+  attack?: number;
+  health?: number;
+  durability?: number;
+  rarity?: string;
+  text?: string;
+  race?: string;
+  cardClass?: string;
+  classes?: string[];
+  playerClass?: string;
+}
+
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
@@ -21,7 +39,7 @@ export async function POST(req: NextRequest) {
     const apiCards = await response.json();
     console.log("Fetched cards:", apiCards.length);
     const filteredCards = set
-      ? apiCards.filter((c) => c.set === set)
+      ? apiCards.filter((c: HearthstoneCard) => c.set === set)
       : apiCards;
 
     const imported = [];
