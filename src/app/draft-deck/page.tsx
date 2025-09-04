@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -28,7 +29,6 @@ export default function DraftDeck() {
   const [pickNumber, setPickNumber] = useState(1);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [hoveredCard, setHoveredCard] = useState(null);
   const [isFetching, setIsFetching] = useState(false);
   const [classChoices, setClassChoices] = useState([]);
 
@@ -195,7 +195,7 @@ export default function DraftDeck() {
                     }`}
                   >
                     <div className="p-2">
-                      <img
+                      <Image
                         src={card.imageUrl}
                         alt={card.name}
                         className="w-full rounded"
@@ -215,25 +215,12 @@ export default function DraftDeck() {
           <h2 className="text-xl font-bold mb-4">
             Current Deck ({deck.length}/30)
           </h2>
-          <div className="max-h-[50vh] overflow-y-auto perspective-1000">
+          <div className="max-h-[50vh] overflow-y-auto">
             {sortedDeck.map((card, index) => (
-              <div key={`${card.cardId}-${index}`} className="relative p-2">
-                <span
-                  className="inline-block w-fit hover:bg-gray-300 cursor-pointer"
-                  onMouseEnter={() => setHoveredCard(card)}
-                  onMouseLeave={() => setHoveredCard(null)}
-                >
+              <div key={`${card.cardId}-${index}`} className="p-2">
+                <span className="inline-block w-fit">
                   {card.name} ({card.mana} Mana)
                 </span>
-                {hoveredCard && hoveredCard.cardId === card.cardId && (
-                  <div className="absolute z-10 left-full top-0 ml-2 w-64 transform transition-transform duration-200 hover:scale-110 hover:translate-z-10">
-                    <img
-                      src={card.imageUrl}
-                      alt={card.name}
-                      className="w-full rounded shadow-lg"
-                    />
-                  </div>
-                )}
               </div>
             ))}
           </div>
