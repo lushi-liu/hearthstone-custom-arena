@@ -2,8 +2,17 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 
+interface Card {
+  _id: string;
+  name: string;
+  mana: number;
+  type: string;
+  class: string;
+  imageUrl: string;
+}
+
 export default function BuildDeck() {
-  const [cards, setCards] = useState([]);
+  const [cards, setCards] = useState<Card[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [deckName, setDeckName] = useState("");
   const [deckClass, setDeckClass] = useState("Neutral");

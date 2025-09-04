@@ -1,7 +1,11 @@
-import "./globals.css";
-import Navbar from "@/components/Navbar";
+import { ReactNode } from "react";
+import Navbar from "@/components/Navbar"; // Adjust path as needed
 
-export default function RootLayout({ children }) {
+interface RootLayoutProps {
+  children: ReactNode;
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <body className="bg-gray-100">

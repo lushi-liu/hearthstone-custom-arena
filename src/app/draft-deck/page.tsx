@@ -22,15 +22,23 @@ ChartJS.register(
   Legend
 );
 
+interface Card {
+  _id?: string;
+  cardId: string;
+  name: string;
+  mana: number;
+  imageUrl: string;
+}
+
 export default function DraftDeck() {
   const [deckClass, setDeckClass] = useState("");
-  const [cards, setCards] = useState([]);
-  const [deck, setDeck] = useState([]);
+  const [cards, setCards] = useState<Card[]>([]);
+  const [deck, setDeck] = useState<Card[]>([]);
   const [pickNumber, setPickNumber] = useState(1);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isFetching, setIsFetching] = useState(false);
-  const [classChoices, setClassChoices] = useState([]);
+  const [classChoices, setClassChoices] = useState<string[]>([]);
 
   const allClasses = [
     "Druid",
@@ -68,7 +76,7 @@ export default function DraftDeck() {
   };
 
   // Handle class selection
-  const handleClassSelect = (selectedClass) => {
+  const handleClassSelect = (selectedClass: string) => {
     setDeckClass(selectedClass);
     setDeck([]);
     setPickNumber(1);
@@ -78,12 +86,14 @@ export default function DraftDeck() {
   };
 
   // Handle card selection
-  const handleCardSelect = async (card) => {
+  const handleCardSelect = async (card: Card) => {
     if (isFetching || pickNumber > 30) return;
     console.log("Selected card:", card.name, "for pick:", pickNumber);
     setDeck([...deck, card]);
     setPickNumber(pickNumber + 1);
-    if (pickNumber === 30) {
+    if (pickNumber < 30) {
+      await fetchCards(); // Fetch next set of cards
+    } else {
       try {
         const response = await fetch("/api/decks", {
           method: "POST",
@@ -150,10 +160,10 @@ export default function DraftDeck() {
 
   // Fetch cards when class is selected
   useEffect(() => {
-    if (deckClass && pickNumber <= 30) {
+    if (deckClass && cards.length === 0) {
       fetchCards();
     }
-  }, [deckClass, pickNumber]);
+  }, [deckClass]);
 
   return (
     <div className="flex min-h-screen bg-gray-100 text-black pt-16">
