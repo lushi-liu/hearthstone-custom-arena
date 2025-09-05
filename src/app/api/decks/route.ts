@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       deckClass,
       cardIdsLength: cardIds?.length,
       type,
-      sampleCardIds: cardIds?.slice(0, 5), // Log first 5 cardIds
+      cardIds, // Log all cardIds
     });
 
     // Validate input
@@ -55,17 +55,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify cardIds exist
-    const cardsExist = await Card.find({ cardId: { $in: cardIds } }).select(
-      "cardId"
-    );
+    // Verify all cardIds exist
+    const uniqueCardIds = [...new Set(cardIds)]; // Check unique cardIds
+    const cardsExist = await Card.find({
+      cardId: { $in: uniqueCardIds },
+    }).select("cardId");
     const foundIds = cardsExist.map((c) => c.cardId.toString());
-    if (cardsExist.length !== cardIds.length) {
-      const missingIds = cardIds.filter(
-        (id) => !foundIds.includes(id.toString())
-      );
+    const missingIds = uniqueCardIds.filter((id) => !foundIds.includes(id));
+    if (missingIds.length > 0) {
       console.error("Validation failed: Some card IDs not found", {
-        found: cardsExist.length,
         missing: missingIds,
       });
       return NextResponse.json(
