@@ -11,11 +11,11 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "3"); // Support limit for home page
 
     // Rarity probabilities
-    const rarityRoll = Math.random() * 100;
+    const rarityRoll = Math.random() * 300;
     let rarity: string;
     if (rarityRoll < 1) rarity = "Legendary";
-    else if (rarityRoll < 8) rarity = "Epic";
-    else if (rarityRoll < 30) rarity = "Rare";
+    else if (rarityRoll < 18) rarity = "Epic";
+    else if (rarityRoll < 80) rarity = "Rare";
     else rarity = "Common";
 
     // Fetch cards
