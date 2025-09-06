@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing card name" }, { status: 400 });
     }
     if (!type || !["MINION", "SPELL", "WEAPON"].includes(type)) {
-      console.error("Validation failed: Invalid type");
+      console.error("Validation failed: Invalid type", { type });
       return NextResponse.json(
         { error: "Type must be MINION, SPELL, or WEAPON" },
         { status: 400 }
@@ -57,14 +57,14 @@ export async function POST(req: NextRequest) {
         "WARRIOR",
       ].includes(cardClass)
     ) {
-      console.error("Validation failed: Invalid class");
+      console.error("Validation failed: Invalid class", { cardClass });
       return NextResponse.json(
         { error: "Invalid card class" },
         { status: 400 }
       );
     }
     if (typeof mana !== "number" || mana < 0) {
-      console.error("Validation failed: Invalid mana");
+      console.error("Validation failed: Invalid mana", { mana });
       return NextResponse.json(
         { error: "Mana must be a non-negative number" },
         { status: 400 }
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       (type === "MINION" || type === "WEAPON") &&
       (typeof attack !== "number" || attack < 0)
     ) {
-      console.error("Validation failed: Invalid attack");
+      console.error("Validation failed: Invalid attack", { attack });
       return NextResponse.json(
         { error: "Attack must be a non-negative number for MINION or WEAPON" },
         { status: 400 }
@@ -84,14 +84,14 @@ export async function POST(req: NextRequest) {
       (type === "MINION" || type === "WEAPON") &&
       (typeof health !== "number" || health < 0)
     ) {
-      console.error("Validation failed: Invalid health");
+      console.error("Validation failed: Invalid health", { health });
       return NextResponse.json(
         { error: "Health must be a non-negative number for MINION or WEAPON" },
         { status: 400 }
       );
     }
     if (!rarity || !["Common", "Rare", "Epic", "Legendary"].includes(rarity)) {
-      console.error("Validation failed: Invalid rarity");
+      console.error("Validation failed: Invalid rarity", { rarity });
       return NextResponse.json(
         { error: "Rarity must be Common, Rare, Epic, or Legendary" },
         { status: 400 }
@@ -106,8 +106,18 @@ export async function POST(req: NextRequest) {
     }
 
     // Generate unique cardId
-    const timestamp = Date.now();
-    const cardId = `CUSTOM_${timestamp}`;
+    const randomSuffix = Math.random().toString(36).substring(2, 8); // 6-char random string
+    const cardId = `CUSTOM_${Date.now()}_${randomSuffix}`;
+
+    // Check for existing cardId
+    const existingCard = await Card.findOne({ cardId });
+    if (existingCard) {
+      console.error("Validation failed: Duplicate cardId", { cardId });
+      return NextResponse.json(
+        { error: "Card ID already exists" },
+        { status: 400 }
+      );
+    }
 
     // Save card
     const card = new Card({
@@ -133,7 +143,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Error creating card");
     return NextResponse.json(
-      { error: "Failed to create card" },
+      { error: "Failed to create card:" },
       { status: 500 }
     );
   }
