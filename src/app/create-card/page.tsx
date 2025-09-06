@@ -186,7 +186,7 @@ export default function CreateCard() {
         </div>
         <button
           type="submit"
-          className="w-full p-2 bg-blue-500 text-white rounded"
+          className="w-full p-2 bg-blue-600 hover:bg-blue-800 text-white rounded"
         >
           Create Card
         </button>

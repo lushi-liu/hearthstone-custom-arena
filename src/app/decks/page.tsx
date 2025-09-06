@@ -52,6 +52,28 @@ export default function Decks() {
     }));
   };
 
+  const handleDelete = async (deckId: string, deckName: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${deckName}"?`)) {
+      return;
+    }
+    try {
+      const response = await fetch(`/api/decks/${deckId}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to delete deck");
+      setDecks(decks.filter((deck) => deck._id !== deckId));
+      setExpandedDecks((prev) => {
+        const newState = { ...prev };
+        delete newState[deckId];
+        return newState;
+      });
+      setError("");
+    } catch (err) {
+      setError("Error deleting deck. Please try again.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 text-black pt-16 p-4">
       <h1 className="text-2xl font-bold mb-4">Your Arena Decks</h1>
@@ -66,12 +88,20 @@ export default function Decks() {
               <h2 className="text-xl font-bold">
                 {deck.name} ({deck.class})
               </h2>
-              <button
-                onClick={() => toggleDeck(deck._id)}
-                className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                {expandedDecks[deck._id] ? "Hide Cards" : "Show Cards"}
-              </button>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => toggleDeck(deck._id)}
+                  className="p-2 bg-blue-600 text-white rounded hover:bg-blue-800"
+                >
+                  {expandedDecks[deck._id] ? "Hide Cards" : "Show Cards"}
+                </button>
+                <button
+                  onClick={() => handleDelete(deck._id, deck.name)}
+                  className="p-2 bg-red-600 text-white rounded hover:bg-red-800"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
             {expandedDecks[deck._id] && (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

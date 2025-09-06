@@ -15,7 +15,7 @@ interface Card {
   class: string;
 }
 
-export default function CustomCards() {
+export default function CreatedCards() {
   const [cards, setCards] = useState<Card[]>([]);
   const [error, setError] = useState("");
 
@@ -110,7 +110,7 @@ export default function CustomCards() {
             </div>
             <button
               onClick={() => handleDelete(card.cardId, card.name)}
-              className="p-2 bg-red-500 text-white rounded hover:bg-red-600"
+              className="p-2 bg-red-600 text-white rounded hover:bg-red-800"
               disabled={!card.cardId}
             >
               Delete

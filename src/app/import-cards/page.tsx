@@ -72,13 +72,13 @@ export default function ImportCards() {
         </div>
         <button
           onClick={handleImport}
-          className="w-full p-2 bg-blue-500 text-white rounded"
+          className="w-full p-2 bg-blue-600 hover:bg-blue-800 text-white rounded"
         >
           Import Cards
         </button>
         <button
           onClick={handleDeleteImported}
-          className="w-full p-2 bg-red-500 text-white rounded mt-2"
+          className="w-full p-2 bg-red-600 hover:bg-red-800 text-white rounded mt-2"
         >
           Delete All Imported Cards
         </button>
