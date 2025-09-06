@@ -45,12 +45,21 @@ export default function Home() {
       <p className="text-lg mb-6 text-center max-w-md">
         Arena draft simulator and card creation
       </p>
-      <Link
-        href="/draft-deck"
-        className="px-6 py-3 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors duration-200 font-semibold"
-      >
-        Start Arena Draft
-      </Link>
+      <div className="flex-row space-x-4">
+        <Link
+          href="/draft-deck"
+          className="px-6 py-3 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors duration-200 font-semibold"
+        >
+          Start Arena Draft
+        </Link>
+        <Link
+          href="/create-card"
+          className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-800 transition-colors duration-200 font-semibold"
+        >
+          Create a Custom Card
+        </Link>
+      </div>
+
       <div className="mt-8 flex gap-4">
         {displayCards.map((card, i) => (
           <div
