@@ -67,7 +67,7 @@ export default function CreateCard() {
           <select
             value={form.type}
             onChange={(e) => setForm({ ...form, type: e.target.value })}
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded bg-black"
           >
             <option value="MINION">Minion</option>
             <option value="SPELL">Spell</option>
@@ -148,7 +148,7 @@ export default function CreateCard() {
           <select
             value={form.rarity}
             onChange={(e) => setForm({ ...form, rarity: e.target.value })}
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded bg-black"
           >
             <option value="Common">Common</option>
             <option value="Rare">Rare</option>
@@ -161,12 +161,18 @@ export default function CreateCard() {
           <select
             value={form.class}
             onChange={(e) => setForm({ ...form, class: e.target.value })}
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded bg-black"
           >
             <option value="NEUTRAL">Neutral</option>
             <option value="MAGE">Mage</option>
             <option value="SHAMAN">Shaman</option>
             <option value="DRUID">Druid</option>
+            <option value="DRUID">Paladin</option>
+            <option value="DRUID">Warrior</option>
+            <option value="DRUID">Hunter</option>
+            <option value="DRUID">Priest</option>
+            <option value="DRUID">Rogue</option>
+            <option value="DRUID">Warlock</option>
           </select>
         </div>
         <div>
