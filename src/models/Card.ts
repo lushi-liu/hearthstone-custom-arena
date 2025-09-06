@@ -12,7 +12,7 @@ const CardSchema = new mongoose.Schema({
   type: { type: String, required: true },
   class: { type: String, required: true },
   source: { type: String, required: true },
-  imageUrl: { type: String, required: true },
+  imageUrl: { type: String },
 });
 
 export default mongoose.models.Card || mongoose.model("Card", CardSchema);

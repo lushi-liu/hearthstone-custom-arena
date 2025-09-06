@@ -25,6 +25,12 @@ export default function Navbar() {
             Create Cards
           </Link>
           <Link
+            href="/created-cards"
+            className="px-4 py-2 rounded-md bg-yellow-600 hover:bg-yellow-700 transition-colors duration-200 font-semibold"
+          >
+            View Created Cards
+          </Link>
+          <Link
             href="/import-cards"
             className="px-4 py-2 rounded-md bg-yellow-600 hover:bg-yellow-700 transition-colors duration-200 font-semibold"
           >

@@ -4,8 +4,8 @@ import { useState } from "react";
 export default function CreateCard() {
   const [form, setForm] = useState({
     name: "",
-    type: "Minion",
-    class: "Neutral",
+    type: "MINION",
+    class: "NEUTRAL",
     mana: 0,
     attack: 0,
     health: 0,
@@ -32,8 +32,8 @@ export default function CreateCard() {
       setSuccess("Card created successfully!");
       setForm({
         name: "",
-        type: "Minion",
-        class: "Neutral",
+        type: "MINION",
+        class: "NEUTRAL",
         mana: 0,
         attack: 0,
         health: 0,
@@ -69,9 +69,9 @@ export default function CreateCard() {
             onChange={(e) => setForm({ ...form, type: e.target.value })}
             className="w-full p-2 border rounded"
           >
-            <option value="Minion">Minion</option>
-            <option value="Spell">Spell</option>
-            <option value="Weapon">Weapon</option>
+            <option value="MINION">Minion</option>
+            <option value="SPELL">Spell</option>
+            <option value="WEAPON">Weapon</option>
           </select>
         </div>
         <div>
@@ -85,7 +85,7 @@ export default function CreateCard() {
             required
           />
         </div>
-        {form.type === "Minion" && (
+        {form.type === "MINION" && (
           <>
             <div>
               <label className="block">Attack</label>
@@ -119,7 +119,7 @@ export default function CreateCard() {
             </div>
           </>
         )}
-        {form.type === "Weapon" && (
+        {form.type === "WEAPON" && (
           <>
             <div>
               <label className="block">Attack</label>
@@ -154,6 +154,19 @@ export default function CreateCard() {
             <option value="Rare">Rare</option>
             <option value="Epic">Epic</option>
             <option value="Legendary">Legendary</option>
+          </select>
+        </div>
+        <div>
+          <label className="block">Class</label>
+          <select
+            value={form.class}
+            onChange={(e) => setForm({ ...form, class: e.target.value })}
+            className="w-full p-2 border rounded"
+          >
+            <option value="NEUTRAL">Neutral</option>
+            <option value="MAGE">Mage</option>
+            <option value="SHAMAN">Shaman</option>
+            <option value="DRUID">Druid</option>
           </select>
         </div>
         <div>

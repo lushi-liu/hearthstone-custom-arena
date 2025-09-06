@@ -3,14 +3,48 @@ import connectDB from "@/lib/db";
 import Deck from "@/models/Deck";
 import Card from "@/models/Card";
 
+interface Card {
+  cardId: string;
+  name: string;
+  mana: number;
+  imageUrl: string;
+}
+
 export async function GET(req: NextRequest) {
   try {
     await connectDB();
-    const decks = await Deck.find({ type: "arena" })
-      .populate("cardIds", "cardId name mana")
-      .lean();
-    console.log(`Fetched ${decks.length} decks`);
-    return NextResponse.json(decks);
+    const decks = await Deck.find({ type: "arena" }).lean();
+    // Populate card details
+    const populatedDecks = await Promise.all(
+      decks.map(async (deck) => {
+        const cards = await Card.find({ cardId: { $in: deck.cardIds } }).select(
+          "cardId name mana imageUrl"
+        );
+        // Sort cards by mana, then name
+        const sortedCards = deck.cardIds
+          .map((cardId: string) => {
+            const card = cards.find(
+              (c) => c.cardId.toString() === cardId.toString()
+            );
+            return (
+              card || {
+                cardId,
+                name: "Unknown",
+                mana: 0,
+                imageUrl: "https://via.placeholder.com/128x192?text=Unknown",
+              }
+            );
+          })
+          .sort((a: Card, b: Card) => {
+            if (a.mana !== b.mana) return a.mana - b.mana;
+            return a.name.localeCompare(b.name);
+          });
+        return { ...deck, cards: sortedCards };
+      })
+    );
+
+    console.log(`Fetched ${populatedDecks.length} decks`);
+    return NextResponse.json(populatedDecks);
   } catch (error) {
     console.error("Error fetching decks");
     return NextResponse.json(
@@ -30,10 +64,9 @@ export async function POST(req: NextRequest) {
       deckClass,
       cardIdsLength: cardIds?.length,
       type,
-      cardIds, // Log all cardIds
+      cardIds,
     });
 
-    // Validate input
     if (!name) {
       console.error("Validation failed: Missing name");
       return NextResponse.json({ error: "Missing deck name" }, { status: 400 });
@@ -60,7 +93,6 @@ export async function POST(req: NextRequest) {
       console.error("Validation failed: Missing type");
       return NextResponse.json({ error: "Missing deck type" }, { status: 400 });
     }
-    // Ensure cardIds are strings
     if (!cardIds.every((id) => typeof id === "string")) {
       console.error("Validation failed: cardIds must be strings", {
         invalidIds: cardIds.filter((id) => typeof id !== "string"),
@@ -71,8 +103,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify all cardIds exist
-    const uniqueCardIds = [...new Set(cardIds)]; // Check unique cardIds
+    const uniqueCardIds = [...new Set(cardIds)];
     const cardsExist = await Card.find({
       cardId: { $in: uniqueCardIds },
     }).select("cardId");
@@ -88,7 +119,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Save deck
     const deck = new Deck({
       name,
       class: deckClass.toUpperCase(),
