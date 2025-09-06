@@ -3,12 +3,28 @@ import connectDB from "@/lib/db";
 import Deck from "@/models/Deck";
 import Card from "@/models/Card";
 
+export async function GET(req: NextRequest) {
+  try {
+    await connectDB();
+    const decks = await Deck.find({ type: "arena" })
+      .populate("cardIds", "cardId name mana")
+      .lean();
+    console.log(`Fetched ${decks.length} decks`);
+    return NextResponse.json(decks);
+  } catch (error) {
+    console.error("Error fetching decks");
+    return NextResponse.json(
+      { error: "Failed to fetch decks" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
     const { name, class: deckClass, cardIds, type } = await req.json();
 
-    // Log payload
     console.log("Received deck payload:", {
       name,
       deckClass,
