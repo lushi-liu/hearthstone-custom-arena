@@ -52,6 +52,18 @@ export default function DraftDeck() {
     "Warrior",
   ];
 
+  const classColors: { [key: string]: { bg: string; hover: string } } = {
+    Mage: { bg: "bg-blue-300", hover: "hover:bg-blue-400" },
+    Shaman: { bg: "bg-blue-700", hover: "hover:bg-blue-800" },
+    Druid: { bg: "bg-amber-700", hover: "hover:bg-amber-800" },
+    Paladin: { bg: "bg-yellow-400", hover: "hover:bg-yellow-500" },
+    Warrior: { bg: "bg-red-600", hover: "hover:bg-red-700" },
+    Hunter: { bg: "bg-green-500", hover: "hover:bg-green-600" },
+    Priest: { bg: "bg-gray-300", hover: "hover:bg-gray-400" },
+    Rogue: { bg: "bg-gray-900", hover: "hover:bg-gray-950" },
+    Warlock: { bg: "bg-purple-600", hover: "hover:bg-purple-700" },
+  };
+
   const getRandomClasses = () => {
     const shuffled = [...allClasses].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, 3);
@@ -187,7 +199,9 @@ export default function DraftDeck() {
               <button
                 key={cls}
                 onClick={() => handleClassSelect(cls)}
-                className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                className={`w-full p-2 text-white rounded ${
+                  classColors[cls]?.bg || "bg-blue-500"
+                } ${classColors[cls]?.hover || "hover:bg-blue-600"}`}
               >
                 {cls}
               </button>
