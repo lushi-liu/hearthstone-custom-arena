@@ -54,7 +54,7 @@ export default function Home() {
         </Link>
         <Link
           href="/create-card"
-          className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-800 transition-colors duration-200 font-semibold"
+          className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-800 transition-colors duration-200 font-semibold"
         >
           Create a Custom Card
         </Link>

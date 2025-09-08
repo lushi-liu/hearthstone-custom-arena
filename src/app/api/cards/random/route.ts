@@ -7,7 +7,6 @@ export async function GET(req: NextRequest) {
     await connectDB();
     const { searchParams } = new URL(req.url);
     const deckClass = searchParams.get("class") || "Neutral";
-    const seed = parseInt(searchParams.get("seed") || "0");
     const limit = parseInt(searchParams.get("limit") || "3"); // Support limit for home page
 
     // Rarity probabilities

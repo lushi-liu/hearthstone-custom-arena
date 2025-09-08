@@ -82,17 +82,6 @@ export default function ImportCards() {
         >
           Delete All Imported Cards
         </button>
-        <p className="text-sm text-gray-600">
-          Find build numbers for historical metas at{" "}
-          <a
-            href="https://wowpedia.fandom.com/wiki/Patch"
-            target="_blank"
-            className="text-blue-500"
-          >
-            Wowpedia
-          </a>{" "}
-          or Hearthstone patch notes.
-        </p>
       </div>
     </div>
   );
