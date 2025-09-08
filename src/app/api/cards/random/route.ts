@@ -13,9 +13,9 @@ export async function GET(req: NextRequest) {
     // Rarity probabilities
     const rarityRoll = Math.random() * 300;
     let rarity: string;
-    if (rarityRoll < 1) rarity = "Legendary";
-    else if (rarityRoll < 18) rarity = "Epic";
-    else if (rarityRoll < 80) rarity = "Rare";
+    if (rarityRoll < 2) rarity = "Legendary";
+    else if (rarityRoll < 25) rarity = "Epic";
+    else if (rarityRoll < 90) rarity = "Rare";
     else rarity = "Common";
 
     // Fetch cards
